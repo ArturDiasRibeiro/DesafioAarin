@@ -5,6 +5,7 @@ RESPOSTA CURTA:
 
 1- Realizaria uma busca por meio do ID do usuário (se disponível), encontrando o Log especifico da aplicação e do gateway de pagamento.
 2- Por não possuir acesso ao código, rastreio onde os dados poderiam ter se perdido. 
+
     As possíbilidades são as seguintes:
         *Webhook - Gateway -> Backend*: Banco confirmou o pagamento, mas não recebemos o retorno;
         *Processamento - BackEnd* -> Banco de Dados: Servidor recebeu o pagamento, porém não foi salvo no Banco de dados;
