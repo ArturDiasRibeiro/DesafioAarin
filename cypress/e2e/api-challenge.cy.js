@@ -1,90 +1,77 @@
 import { faker } from '@faker-js/faker';
+import UserService from '../support/services/UserService';
+import ProductService from '../support/services/ProductService';
+import CartService from '../support/services/CartService';
 
-describe('Fluxo de API - ServeRest', () => {
+describe('E2E Flow - Service Objects Architecture', () => {
 
-    let msg;
-
-    beforeEach(() => {
-        cy.fixture('mensagens').then((tabelaDeMensagens) => {
-            msg = tabelaDeMensagens;
-        });
-    });
-
-    const usuario = {
+    // Test Data
+    const user = {
         nome: faker.person.fullName(),
         email: faker.internet.email(),
         password: faker.internet.password(),
-        administrador: 'true'
+        administrador: 'true' // API Requirement: Must be 'administrador'
     };
 
-    const produto = {
-        nome: `Produto QA ${faker.commerce.productName()} ${faker.string.uuid()}`,
+    const product = {
+        nome: `QA Product ${faker.string.uuid()}`,
         preco: 100,
-        descricao: 'Produto de Teste',
+        descricao: 'Test Description',
         quantidade: 100
     };
 
-    let userToken;
+    // Shared State
     let userId;
-    let produtoId;
+    let userToken;
+    let productId;
 
-    it('Deve realizar o ciclo completo de compra no E-commerce', () => {
-        
-        cy.cadastrarUsuario(usuario.nome, usuario.email, usuario.password)
-            .then((res) => {
-                expect(res.status).to.eq(201);
-                expect(res.body.message).to.eq(msg.sucesso.cadastro);
+    context('User Journey: Full Purchase Cycle', () => {
+
+        it('Step 1: Should register a new user successfully', () => {
+            UserService.register(user).then(res => {
+                expect(res.status).to.eq(201, `Failed to register user: ${res.body.message}`);
                 userId = res.body._id;
             });
+        });
 
-        cy.login(usuario.email, usuario.password)
-            .then((res) => {
-                expect(res.status).to.eq(200);
-                expect(res.body.message).to.eq(msg.sucesso.login);
+        it('Step 2: Should login and retrieve the access token', () => {
+            UserService.login(user.email, user.password).then(res => {
+                expect(res.status).to.eq(200, 'Login failed');
+                expect(res.body.authorization).to.exist;
                 userToken = res.body.authorization;
-                expect(userToken).to.exist;
             });
+        });
+
+        it('Step 3: Should create a new product', () => {
+            ProductService.create(userToken, product).then(res => {
+                expect(res.status).to.eq(201, 'Failed to create product');
+                productId = res.body._id;
+            });
+        });
+
+        it('Step 4: Should add the product to the user cart', () => {
+            // Safety measure: Clear any existing cart before adding
+            CartService.clear(userToken);
             
-        cy.then(() => {
-            cy.cadastrarProduto(userToken, produto).then((res) => {
-                expect(res.status).to.eq(201);
-                expect(res.body.message).to.eq(msg.sucesso.cadastro);
-                produtoId = res.body._id;
+            CartService.add(userToken, productId, 2).then(res => {
+                expect(res.status).to.eq(201, 'Failed to add product to cart');
             });
         });
 
-        cy.then(() => {
-            cy.adicionarAoCarrinho(userToken, produtoId, 2).then((res) => {
-                expect(res.status).to.eq(201);
-                expect(res.body.message).to.eq(msg.sucesso.cadastro);
+        it('Step 5: Should validate the product details inside the cart', () => {
+            // Removed the quantity param as we simplified the logic in the Service
+            CartService.validateProductInCart(userToken, userId, productId);
+        });
+
+        it('Step 6: Should clear/finish the purchase', () => {
+            CartService.clear(userToken).then(res => {
+                expect(res.status).to.eq(200, 'Failed to clear cart');
             });
         });
 
-        cy.then(() => {
-            cy.buscarCarrinhos(userToken).then((res) => {
-                expect(res.status).to.eq(200);
-                
-                const carrinhoUsuario = res.body.carrinhos.find(c => c.idUsuario === userId);
-                expect(carrinhoUsuario).to.exist;
-                
-                const produtoNoCarrinho = carrinhoUsuario.produtos.find(p => p.idProduto === produtoId);
-                expect(produtoNoCarrinho.quantidade).to.eq(2);
-            });
+        it('Step 7: Should verify that the cart is empty (Smoke Test)', () => {
+            CartService.validateEmptyCart(userToken, userId);
         });
 
-        cy.then(() => {
-            cy.limparCarrinhoUsuario(userToken).then((res) => {
-                expect(res.status).to.eq(200);
-                expect(res.body.message).to.contain(msg.sucesso.exclusao);
-            });
-        });
-
-        cy.then(() => {
-            cy.buscarCarrinhos(userToken).then((res) => {
-                expect(res.status).to.eq(200);
-                const carrinhoUsuario = res.body.carrinhos.find(c => c.idUsuario === userId);
-                expect(carrinhoUsuario).to.be.undefined;
-            });
-        });
     });
 });

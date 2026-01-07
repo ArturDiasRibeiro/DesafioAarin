@@ -1,13 +1,21 @@
-// GESTÃO DE USUÁRIOS
-Cypress.Commands.add('cadastrarUsuario', (nome, email, password, administrador = 'true', failOnStatusCode = true) => {
+// --- USER MANAGEMENT ---
+
+/**
+ * Register a new user
+ * @param {string} name - User's full name
+ * @param {string} email - User's email
+ * @param {string} password - User's password
+ * @param {string} isAdmin - 'true' or 'false' (API requires string)
+ */
+Cypress.Commands.add('registerUser', (name, email, password, isAdmin = 'true', failOnStatusCode = true) => {
     cy.request({
         method: 'POST',
         url: '/usuarios',
         body: {
-            nome: nome,
+            nome: name,            // API expects 'nome'
             email: email,
             password: password,
-            administrador: administrador
+            administrador: isAdmin // API expects 'administrador'
         },
         failOnStatusCode: failOnStatusCode
     });
@@ -25,19 +33,26 @@ Cypress.Commands.add('login', (email, password, failOnStatusCode = true) => {
     });
 });
 
-// GESTÃO DE PRODUTOS
-Cypress.Commands.add('cadastrarProduto', (token, produto, failOnStatusCode = true) => {
+// --- PRODUCT MANAGEMENT ---
+
+/**
+ * Create a product
+ * @param {string} token - Auth token
+ * @param {object} product - Object containing { nome, preco, descricao, quantidade }
+ */
+Cypress.Commands.add('createProduct', (token, product, failOnStatusCode = true) => {
     cy.request({
         method: 'POST',
         url: '/produtos',
         headers: { Authorization: token },
-        body: produto,
+        body: product, 
         failOnStatusCode: failOnStatusCode
     });
 });
 
-// GESTÃO DE CARRINHO
-Cypress.Commands.add('adicionarAoCarrinho', (token, idProduto, quantidade, failOnStatusCode = true) => {
+// --- CART MANAGEMENT ---
+
+Cypress.Commands.add('addToCart', (token, productId, quantity, failOnStatusCode = true) => {
     cy.request({
         method: 'POST',
         url: '/carrinhos',
@@ -45,8 +60,8 @@ Cypress.Commands.add('adicionarAoCarrinho', (token, idProduto, quantidade, failO
         body: {
             produtos: [
                 {
-                    idProduto: idProduto,
-                    quantidade: quantidade
+                    idProduto: productId, // API expects 'idProduto'
+                    quantidade: quantity  // API expects 'quantidade'
                 }
             ]
         },
@@ -54,7 +69,7 @@ Cypress.Commands.add('adicionarAoCarrinho', (token, idProduto, quantidade, failO
     });
 });
 
-Cypress.Commands.add('buscarCarrinhos', (token, failOnStatusCode = true) => {
+Cypress.Commands.add('getCarts', (token, failOnStatusCode = true) => {
     cy.request({
         method: 'GET',
         url: '/carrinhos',
@@ -63,17 +78,16 @@ Cypress.Commands.add('buscarCarrinhos', (token, failOnStatusCode = true) => {
     });
 });
 
-Cypress.Commands.add('cancelarCompra', (token, failOnStatusCode = true) => {
+Cypress.Commands.add('completePurchase', (token, failOnStatusCode = true) => {
     cy.request({
         method: 'DELETE',
-        url: '/carrinhos/concluir-compra', // ou cancelar-compra, dependendo da regra, mas geralmente usa-se o delete
+        url: '/carrinhos/concluir-compra',
         headers: { Authorization: token },
         failOnStatusCode: failOnStatusCode
     });
 });
 
-// Comando auxiliar para limpar carrinho específico (DELETE /carrinhos/cancelar-compra limpa o carrinho do usuário logado)
-Cypress.Commands.add('limparCarrinhoUsuario', (token, failOnStatusCode = true) => {
+Cypress.Commands.add('clearUserCart', (token, failOnStatusCode = true) => {
     cy.request({
         method: 'DELETE',
         url: '/carrinhos/cancelar-compra', 

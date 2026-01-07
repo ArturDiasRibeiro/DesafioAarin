@@ -5,8 +5,8 @@
     "cypress-plugin-api": "^2.11.2"
   },
   "scripts": {
-  "cy:open": "cypress open",
-  "cy:run": "cypress run",
-  "test": "cypress run --spec 'cypress/e2e/**/*.cy.js'" 
-}
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "test": "cypress run --spec 'cypress/e2e/**/*.cy.js'"
+  }
 }
