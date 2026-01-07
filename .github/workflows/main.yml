@@ -1,0 +1,14 @@
+name: E2E Tests
+
+on: [push]
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # Instala dependências e roda os testes
+      - name: Cypress Run
+        uses: cypress-io/github-action@v6

@@ -1,0 +1,12 @@
+{
+  "sucesso": {
+    "cadastro": "Cadastro realizado com sucesso",
+    "login": "Login realizado com sucesso",
+    "exclusao": "Registro excluído com sucesso"
+  },
+  "erros": {
+    "emailDuplicado": "Este email já está sendo usado",
+    "loginInvalido": "Email e/ou senha inválidos",
+    "tokenInvalido": "Token de acesso ausente, inválido, expirado"
+  }
+}
