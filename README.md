@@ -4,6 +4,7 @@ Você está testando um e-commerce e um bug crítico foi reportado: “Às vezes
 RESPOSTA CURTA: 
 
 1- Realizaria uma busca por meio do ID do usuário (se disponível), encontrando o Log especifico da aplicação e do gateway de pagamento.
+
 2- Por não possuir acesso ao código, rastreio onde os dados poderiam ter se perdido. 
 
     As possíbilidades são as seguintes:
